@@ -1,0 +1,21 @@
+# Конфигурационные файлы
+config.yml
+
+# Скомпилированные файлы
+target/
+*.class
+
+# IDE файлы
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Логи
+*.log
+
+# Системные файлы
+.DS_Store
+Thumbs.db 

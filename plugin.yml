@@ -1,0 +1,4 @@
+name: UnikGPT
+version: 1.0
+main: com.unikgpt.UnikGPT
+api-version: 1.13

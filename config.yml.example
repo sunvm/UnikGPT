@@ -1,0 +1,7 @@
+# Пример конфигурации UnikGPT
+api:
+  key: "YOUR_GEMINI_API_KEY_HERE"  # Замените на ваш API ключ
+  url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+
+messages:
+  error: "Произошла ошибка при получении ответа от ИИ." 
