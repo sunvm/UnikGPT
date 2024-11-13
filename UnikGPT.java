@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import okhttp3.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -36,6 +37,7 @@ public class UnikGPT extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         String message = event.getMessage();
+        String playerName = event.getPlayer().getName();
         
         if (message.startsWith("?!")) {
             event.setCancelled(true);
@@ -50,7 +52,7 @@ public class UnikGPT extends JavaPlugin implements Listener {
             String question = message.substring(1).trim();
             
             getAsyncAIResponse(question, response -> {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "w " + event.getPlayer().getName() + " " + response);
+                sendMessage(playerName, response);
             });
         }
     }
@@ -73,25 +75,71 @@ public class UnikGPT extends JavaPlugin implements Listener {
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
         
         JsonObject jsonBody = new JsonObject();
-        JsonObject contents = new JsonObject();
-        contents.addProperty("text", question);
+        JsonArray contents = new JsonArray();
+        JsonObject content = new JsonObject();
+        content.addProperty("role", "user");
+        content.addProperty("parts", question);
+        contents.add(content);
         jsonBody.add("contents", contents);
 
         RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
         Request request = new Request.Builder()
             .url(apiUrl + "?key=" + apiKey)
+            .addHeader("Content-Type", "application/json")
             .post(body)
             .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            if (!response.isSuccessful()) {
+                getLogger().warning("API Error: " + response.code() + " - " + response.body().string());
+                throw new IOException("Unexpected code " + response);
+            }
             
             String responseBody = response.body().string();
             JsonObject jsonResponse = new Gson().fromJson(responseBody, JsonObject.class);
-            return jsonResponse.getAsJsonObject("candidates")
-                .getAsJsonArray("content")
-                .get(0).getAsJsonObject()
-                .get("text").getAsString().trim();
+            
+            try {
+                return jsonResponse
+                    .getAsJsonArray("candidates")
+                    .get(0)
+                    .getAsJsonObject()
+                    .getAsJsonObject("content")
+                    .getAsJsonArray("parts")
+                    .get(0)
+                    .getAsJsonObject()
+                    .get("text")
+                    .getAsString()
+                    .trim();
+            } catch (Exception e) {
+                getLogger().warning("JSON Parse Error: " + responseBody);
+                throw new IOException("Failed to parse API response", e);
+            }
+        }
+    }
+
+    private void sendMessage(String playerName, String message) {
+        final int MAX_LENGTH = 256;
+        
+        if (message.length() <= MAX_LENGTH) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "w " + playerName + " " + message);
+            return;
+        }
+
+        String[] words = message.split(" ");
+        StringBuilder currentMessage = new StringBuilder();
+
+        for (String word : words) {
+            if (currentMessage.length() + word.length() + 1 > MAX_LENGTH) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+                    "w " + playerName + " " + currentMessage.toString().trim());
+                currentMessage = new StringBuilder();
+            }
+            currentMessage.append(word).append(" ");
+        }
+
+        if (currentMessage.length() > 0) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+                "w " + playerName + " " + currentMessage.toString().trim());
         }
     }
 }

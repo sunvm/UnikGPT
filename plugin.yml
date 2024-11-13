@@ -2,3 +2,14 @@ name: UnikGPT
 version: 1.0
 main: com.unikgpt.UnikGPT
 api-version: 1.13
+commands:
+  unikgpt:
+    description: Основная команда плагина
+    usage: /<command> [reload|help]
+permissions:
+  unikgpt.use:
+    description: Разрешает использовать команды плагина
+    default: true
+  unikgpt.admin:
+    description: Разрешает использовать административные команды
+    default: op
