@@ -1,0 +1,44 @@
+name: UnikGPT
+version: 1.1
+main: com.unikgpt.UnikGPT
+api-version: '1.21'
+description: Плагин для общения с Google AI в Minecraft через прокси
+
+commands:
+  unikgpt:
+    description: Основная команда плагина
+    usage: |
+      §6(｀・ω・´) Использование команд UnikGPT:
+      §e/unikgpt reload §7- Перезагрузить конфигурацию
+      §e/unikgpt help §7- Показать это сообщение
+      §e? <вопрос> §7- Задать приватный вопрос
+      §e?! <вопрос> §7- Задать публичный вопрос
+    aliases: [gpt, ai]
+  
+  '?':
+    description: Задать приватный вопрос ИИ
+    usage: §e? <ваш_вопрос> §7- Получить приватный ответ
+    permission: unikgpt.use
+  
+  '?!':
+    description: Задать публичный вопрос ИИ
+    usage: §e?! <ваш_вопрос> §7- Получить ответ в общий чат
+    permission: unikgpt.use
+
+permissions:
+  unikgpt.use:
+    description: Разрешает использовать команды плагина
+    default: true
+  unikgpt.admin:
+    description: Разрешает использовать административные команды
+    default: op
+  unikgpt.reload:
+    description: Разрешает перезагружать конфигурацию плагина
+    default: op
+  unikgpt.*:
+    description: Предоставляет доступ ко всем функциям плагина
+    default: op
+    children:
+      unikgpt.use: true
+      unikgpt.admin: true
+      unikgpt.reload: true 
